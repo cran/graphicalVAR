@@ -1,0 +1,114 @@
+\name{graphicalVAR}
+\alias{graphicalVAR}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{
+Estimate the graphical VAR model.
+}
+\description{
+Estimates the graphical VAR (Wild et al., 2010) model through LASSO estimation coupled with extended Bayesian information criterion for choosing the optimal tuning parameters. The estimation procedure is outlined by Rothman, Levina and Zhu (2010) and is further described by Abegaz and Wit (2013). The procedure here is based on the work done in the R package SparseTSCGM (Abegaz and Wit, 2014).
+}
+\usage{
+graphicalVAR(data, nLambda = 50, verbose = TRUE, gamma = 0.5, lambda_beta, lambda_kappa, 
+                  maxit.in = 100, maxit.out = 100)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{data}{
+A matrix or data frame containing repeated measures (rows) on a set of variables (columns). Must not contain missing data.
+}
+  \item{nLambda}{
+The number of both lambda parameters to test. Defaults to 50, which results in 2500 models to evaluate.
+}
+  \item{verbose}{
+Logical, should a progress bar be printed to the console?
+}
+  \item{gamma}{
+The EBIC hyper-parameter. Set to 0 to use regular BIC.
+}
+  \item{lambda_beta}{
+An optional vector of lambda_beta values to test.
+}
+  \item{lambda_kappa}{
+An optional vector of lambda_kappa values to test.
+}
+  \item{maxit.in}{
+Maximum number of iterations in the inner loop (computing beta)
+}
+  \item{maxit.out}{
+  Maximum number of iterations in the outer loop
+  }
+}
+\details{
+Let y_t denote the vector of responses of a subject on a set of items on time point t. The graphical VAR model, using only one lag, is defined as follows:
+
+y_t = Beta y_{y-1} + epsilon_t
+
+In which epsilon_t is a vector of error and is independent between time points but not within time points. Within time points, the error is normally distributed with mean vector 0 and precision matrix (inverse covariance matrix) Kappa. The Beta matrix encodes the between time point interactions and the Kappa matrix encodes the within time point interactions. We aim to find a sparse solution for both Beta and Kappa, and do so by applying the LASSO algorithm as detailed by Rothman, Levina and Zhu (2010). The LASSO algorithm uses two tuning parameters, lambda_beta controlling the sparsity in Beta and lambda_kappa controlling the sparsity in Kappa. We estimate the model under a (by default) 50 by 50 grid of tuning parameters and choose the tuning parameters that optimize the extended Bayesian Information Criterion (EBIC; Chen and Chen,2008).
+
+After estimation, the Beta and Kappa matrices can be standardized as described by Wild et al. (2010). The Kappa matrix can be standardized to partial contemporaneous correlations (PCC) as follows:
+
+PCC(y_{i,t}, y_{j,t}) = - kappa_{ij} / ( sqrt{kappa_{ii} kappa_{jj}})
+
+Similarly, the beta matrix can be standardized to partial directed correlations (PDC):
+
+PDC(y_{i,t-1}, y_{j,t}) = beta_{ji} / sqrt{sigma_{jj} kappa_{ii} + beta_{ji}^2}
+
+In which sigma is the inverse of kappa. Note that this process transposes the beta matrix. This is done because in representing a directed network it is typical to let rows indicate the node of origin and columns the node of destination.
+}
+\value{
+A \code{graphicalVAR} object, which is a list containing:
+
+\item{PCC}{The partial contemporaneous correlation network}
+\item{PDC}{The  partial directed correlation network}
+\item{beta}{The estimated beta matrix}
+\item{kappa}{The estimated kappa matrix}
+\item{EBIC}{The optimal EBIC}
+\item{path}{Results of all tested tuning parameters}
+\item{labels}{A vector containing the node labels}
+}
+\references{
+Chen, J., & Chen, Z. (2008). Extended Bayesian information criteria for model selection with large model spaces. Biometrika, 95(3), 759-771.
+
+Fentaw Abegaz and Ernst Wit (2013). Sparse time series chain graphical
+models for reconstructing genetic networks. Biostatistics. 14, 3:
+586-599.
+
+Fentaw Abegaz and Ernst Wit (2014). SparseTSCGM: Sparse time series chain graphical
+models. R package version 2.1.1. http://CRAN.R-project.org/package=SparseTSCGM
+
+Rothman, A.J., Levina, E., and Zhu, J. (2010). Sparse multivariate
+regression with covariance estimation. Journal of Computational and
+Graphical Statistics. 19: 947-962.
+
+Wild, B., Eichler, M., Friederich, H. C., Hartmann, M., Zipfel, S., &
+Herzog, W. (2010). A graphical vector autoregressive modelling
+approach to the analysis of electronic diary data. BMC medical
+research methodology, 10(1), 28.
+}
+\author{
+Sacha Epskamp <mail@sachaepskamp.com>
+}
+
+\examples{
+# Real matrices:
+Kappa <- diag(1,3,3)
+Kappa[1,2] <- Kappa[2,1] <- Kappa[2,3] <- Kappa[3,2] <- -0.5
+Beta <- diag(0.4,3,3)
+Beta[1,3] <- -0.5
+
+# Simulate data:
+Data <- graphicalVARsim(100,Beta,Kappa)
+
+# Estimate model:
+Res <- graphicalVAR(Data, gamma = 0, nLambda = 20)
+
+# Plot results:
+plot(Res)
+
+# Compare results:
+Beta
+Res$beta
+
+Kappa
+Res$kappa
+}

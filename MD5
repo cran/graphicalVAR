@@ -1,0 +1,17 @@
+144c2c1fbc98c12a4c7f7050e4fc23dc *DESCRIPTION
+0197ef4e525fb9138d95ac9df653f85f *NAMESPACE
+5f46bde7fd0662db3429faca763cc5cf *R/Kappa.R
+832725ee47fbb59c972da5a48001d17e *R/RcppExports.R
+53d5c1314731f4b0218406d9361f711b *R/Rothmana.R
+dd7d8f3f16e7e38e1bcf8f4c7ed9cc07 *R/SparseTSCGM_lambdas.R
+c63df41da43af96cc797786acf8c0450 *R/gVARsimulator.R
+07d63c6857aa4bedfe7db4729739740f *R/graphicalVAR.R
+838a41ce88eb6a16f6d8141730408952 *R/methods.R
+fe8d9459ef562585f1f8e4177f29f98f *man/S3.Rd
+f3ad3a6f3508cb8403e16015a24ccf00 *man/graphicalVAR.Rd
+8ed360ac6c62be822fa1828453f57d03 *man/graphicalVARsim.Rd
+f012fd09c0340671c5de566ffb6245b6 *man/plot.Rd
+2a6f9e9e044a78154d3cfda5936d6f48 *src/Makevars
+8d46d69896a1f1d31ed76035a0e49d67 *src/Makevars.win
+e2a7be87d9403fa8562cc31e27e170ed *src/RcppExports.cpp
+76e9bebda9a90d157947491c143baaaa *src/Rothmana.cpp
