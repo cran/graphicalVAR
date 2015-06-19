@@ -1,11 +1,12 @@
-2c00b1cd9d5467c3fc442ef4a568ecb4 *DESCRIPTION
+689105d45c26f85203676bee529e790f *DESCRIPTION
 0197ef4e525fb9138d95ac9df653f85f *NAMESPACE
+d1e7cdc11ab04a8b79a2c2d0bdeeceff *NEWS
 5f46bde7fd0662db3429faca763cc5cf *R/Kappa.R
 832725ee47fbb59c972da5a48001d17e *R/RcppExports.R
 53d5c1314731f4b0218406d9361f711b *R/Rothmana.R
 dd7d8f3f16e7e38e1bcf8f4c7ed9cc07 *R/SparseTSCGM_lambdas.R
 c63df41da43af96cc797786acf8c0450 *R/gVARsimulator.R
-07d63c6857aa4bedfe7db4729739740f *R/graphicalVAR.R
+40bd1a16785f9e6da2b1b4539c80b293 *R/graphicalVAR.R
 58d59cf9af293841d0b393e03632146a *R/methods.R
 fe8d9459ef562585f1f8e4177f29f98f *man/S3.Rd
 f3ad3a6f3508cb8403e16015a24ccf00 *man/graphicalVAR.Rd
@@ -13,5 +14,5 @@ f3ad3a6f3508cb8403e16015a24ccf00 *man/graphicalVAR.Rd
 f012fd09c0340671c5de566ffb6245b6 *man/plot.Rd
 2a6f9e9e044a78154d3cfda5936d6f48 *src/Makevars
 8d46d69896a1f1d31ed76035a0e49d67 *src/Makevars.win
-e2a7be87d9403fa8562cc31e27e170ed *src/RcppExports.cpp
+ba82021294479c877061f000f2d00acc *src/RcppExports.cpp
 a1040eebaa4323724964dd40c13cef6c *src/Rothmana.cpp
