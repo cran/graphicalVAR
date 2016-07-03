@@ -21,15 +21,14 @@ print.graphicalVAR <- function(x, ...){
       "\n\nNumber of non-zero Directed Contemporaneous Correlations (PDC):",sum(x[['PDC']][upper.tri(x[['PDC']],diag=FALSE)]==0) ,
       "\nPDC Sparsity:",mean(x[['PDC']][upper.tri(x[['PDC']],diag=FALSE)]==0) ,
       "\nNumber of PDC tuning parameters tested:",length(unique(x$path$beta)),
-      paste0("\nPDC network stored in ",name,"$PCC"),
+      paste0("\nPDC network stored in ",name,"$PDC"),
   
       paste0("\n\nUse plot(",name,") to plot the estimated networks.")
   )
 }
 
-
 # Plot method
-plot.graphicalVAR <- function(x, include = c("PCC","PDC"), repulsion = 1, horizontal = TRUE, titles = TRUE, sameLayout = TRUE, ...){
+plot.graphicalVAR <- plot.gVARmodel <- function(x, include = c("PCC","PDC"), repulsion = 1, horizontal = TRUE, titles = TRUE, sameLayout = TRUE, unweightedLayout = FALSE,...){
   qtitle <-  function (x) 
   {
     text(par("usr")[1] + (par("usr")[2] - par("usr")[1])/40, 
@@ -45,8 +44,17 @@ plot.graphicalVAR <- function(x, include = c("PCC","PDC"), repulsion = 1, horizo
     }
   }
   
+  # Choose directed or undirected:
+  if (unweightedLayout){
+    wPCC <- 1*(x$PCC!=0)
+    wPDC <- 1*(x$PDC!=0)
+  } else {
+    wPCC <- x$PCC
+    wPDC <- x$PDC
+  }
+  
   if (sameLayout & all(c("PCC","PDC") %in% include)){
-    Layout <- qgraph::averageLayout(as.matrix(x$PCC), as.matrix(x$PDC), repulsion=repulsion)
+    Layout <- qgraph::averageLayout(as.matrix(wPCC), as.matrix(wPDC), repulsion=repulsion)
   }
   
   Res <- list()
@@ -54,9 +62,11 @@ plot.graphicalVAR <- function(x, include = c("PCC","PDC"), repulsion = 1, horizo
   for (i in seq_along(include)){
     if ("PCC" == include[i]){
       if (sameLayout & all(c("PCC","PDC") %in% include)){
+
         Res[[i]] <- qgraph::qgraph(x$PCC, layout = Layout, ..., repulsion=repulsion)
       } else {
-        Res[[i]] <- qgraph::qgraph(x$PCC, ..., repulsion=repulsion)
+        L <- qgraph::qgraph(wPCC,DoNotPlot=TRUE,...,repulsion=repulsion)$layout
+        Res[[i]] <- qgraph::qgraph(x$PCC, layout = L,..., repulsion=repulsion)
       }
       
       if (titles){
@@ -66,9 +76,10 @@ plot.graphicalVAR <- function(x, include = c("PCC","PDC"), repulsion = 1, horizo
     
     if ("PDC" == include[i]){
       if (sameLayout & all(c("PCC","PDC") %in% include)){
-        Res[[i]] <- qgraph::qgraph(x$PDC, layout = Layout, ..., repulsion=repulsion)
+        Res[[i]] <- qgraph::qgraph(x$PDC, layout = Layout, ..., repulsion=repulsion, directed=TRUE)
       } else {
-        Res[[i]] <- qgraph::qgraph(x$PDC, ..., repulsion=repulsion)
+        L <- qgraph::qgraph(wPDC,DoNotPlot=TRUE,...,repulsion=repulsion, directed=TRUE)$layout
+        Res[[i]] <- qgraph::qgraph(x$PDC,layout=L, ..., repulsion=repulsion, directed=TRUE)
       }
       
       if (titles){
