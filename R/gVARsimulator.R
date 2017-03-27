@@ -1,3 +1,5 @@
+
+
 randomGVARmodel <- function(
   Nvar,
   probKappaEdge = 0.1,
@@ -94,7 +96,7 @@ graphicalVARsim <- function(
   
   # if (sum(skewed==rep(0,ncol(kappa)))==ncol(kappa)){
     for (t in 2:totTime){
-      Data[t,] <- t(beta %*% (Data[t-1,]-mean))  + mvtnorm::rmvnorm(1, rep(0,Nvar), Sigma)
+      Data[t,] <- mean + t(beta %*% (Data[t-1,]-mean))  + mvtnorm::rmvnorm(1, rep(0,Nvar), Sigma)
       Data[t,] <- ifelse(Data[t,]  < lbound, lbound, Data[t,] )
       Data[t,] <- ifelse(Data[t,]  > ubound, ubound, Data[t,] )
     }

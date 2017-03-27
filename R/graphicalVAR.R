@@ -2,7 +2,7 @@ computePCC <- function(x)
 {
   x <- -cov2cor(x)
   diag(x) <- 0
-  x <- as.matrix(forceSymmetric(x))
+  x <- as.matrix(Matrix::forceSymmetric(x))
   return(x)
 }
 
@@ -26,33 +26,64 @@ function(
   deleteMissings = TRUE,
   penalize.diagonal = TRUE,
   lambda_min_kappa = 0.05,
-  lambda_min_beta = 0.05
+  lambda_min_beta = lambda_min_kappa,
+  mimic = c("current","0.1.2","0.1.4","0.1.5"),
+  vars,
+  beepvar,
+  dayvar,
+  idvar,
+  centerWithin = TRUE
   ){
   
-  # Check input:
-  if (is.data.frame(data)){
-    data <- as.matrix(data)
+  mimic <- match.arg(mimic)
+  if (mimic == "0.1.2"){
+    if (lambda_min_beta != lambda_min_kappa){
+      warning("mimic = 0.1.2 only uses lambda_min_kappa, not lambda_min_beta")
+    }
+    if (lambda_min_kappa != 0.01){
+      warning("Set lambda_min_kappa = 0.01 to mimic 0.1.2 default behavior")
+    }
   }
- 
-  stopifnot(is.matrix(data))
   
+  # If list:
+  if (is.list(data) && !is.data.frame(data)){
+    if (!("data_c" %in% names(data) & "data_l" %in% names(data))){
+      stop("'data_c' and 'data_l' must be contained in 'data'")
+    }
+    data_c <- data$data_c
+    data_l <- data$data_l
+  } else{
+    if (mimic == "0.1.5"){
+      # Check input:
+      if (is.data.frame(data)){
+        data <- as.matrix(data)
+      }
+      stopifnot(is.matrix(data))
+      
+      # Center data:
+      data <- scale(data, TRUE, scale)
+      
+      # Compute current and lagged data:
+      data_c <- data[-1,,drop=FALSE]
+      data_l <- cbind(1,data[-nrow(data),,drop=FALSE])
+    } else {
+      data <- tsData(as.data.frame(data),
+                     vars = vars,
+                      beepvar = beepvar,
+                      dayvar = dayvar,
+                     idvar = idvar,
+                      scale = scale,
+                       centerWithin = centerWithin)
+      data_c <- data$data_c
+      data_l <- data$data_l
+    }
+  }
+  data_c <- as.matrix(data_c)
+  data_l <- as.matrix(data_l)
   
+  Nvar <- ncol(data_c)
+  Ntime <- nrow(data_c)
 
-  
-  Nvar <- ncol(data)
-  Ntime <- nrow(data)
-
-  # Center data:
-  data <- scale(data, TRUE, scale)
-#   if (scale){
-#     for (i in 1:ncol(data)) data[,i] <- (data[,i] - mean(data[,i],na.rm=TRUE)) / sd(data[,i],na.rm=TRUE)
-#   } else {
-#     for (i in 1:ncol(data)) data[,i] <- (data[,i] - mean(data[,i],na.rm=TRUE))
-#   }
-  
-  # Compute current and lagged data:
-  data_c <- data[-1,,drop=FALSE]
-  data_l <- cbind(1,data[-nrow(data),,drop=FALSE])
   
   # Delete missing rows:
   if (any(is.na(data_c)) || any(is.na(data_l))){
@@ -73,8 +104,12 @@ function(
   
   # Generate lambdas (from SparseTSCGM package):
   if (missing(lambda_beta) | missing(lambda_kappa)){
-    # lams <- SparseTSCGM_lambdas(data_l, data_c, nLambda, lambda.min.ratio=lambda_min_kappa,lambda.min.ratio2=lambda_min_beta,penalize.diagonal=penalize.diagonal)
-    lams <- generate_lambdas(data_l, data_c, nLambda,nLambda, lambda_min_kappa=lambda_min_kappa,lambda_min_beta=lambda_min_beta,penalize.diagonal=penalize.diagonal)
+    if (mimic == "0.1.2"){
+      lams <- SparseTSCGM_lambdas(data_l, data_c, nLambda, lambda.min.ratio=lambda_min_kappa)      
+    } else {
+      lams <- generate_lambdas(data_l, data_c, nLambda,nLambda, lambda_min_kappa=lambda_min_kappa,lambda_min_beta=lambda_min_beta,penalize.diagonal=penalize.diagonal,
+                               version0.1.4 = mimic == "0.1.4")      
+    }
     if (missing(lambda_beta)){
       lambda_beta <- lams$lambda_beta
     }
@@ -145,7 +180,7 @@ function(
       Estimates[[i]] <- list(beta = beta, kappa = kappa, EBIC = EBIC)
     } else {
       tryres <- try(Rothmana(data_l, data_c, lambdas$beta[i],lambdas$kappa[i], gamma=gamma,maxit.in=maxit.in, maxit.out = maxit.out,
-                             penalize.diagonal = penalize.diagonal)  )
+                             penalize.diagonal = penalize.diagonal, oldVersion = mimic == "0.1.2")  )
       if (is(tryres,"try-error")){
         Estimates[[i]] <- list(beta=matrix(NA,Nvar,Nvar+1), kappa=matrix(NA,Nvar,Nvar), EBIC = Inf,
                                error = tryres)
@@ -182,9 +217,9 @@ function(
   Results$PDC <- computePDC(Results$beta, Results$kappa)  
 
   Results$path <- lambdas
-  Results$labels <- colnames(data)
+  Results$labels <- colnames(data_c)
   if (is.null(Results$labels)){
-    Results$labels <- paste0("V",seq_len(ncol(data)))
+    Results$labels <- paste0("V",seq_len(ncol(data_c)))
   }
   colnames(Results$beta) <- c("1",Results$labels)
   rownames(Results$beta) <- colnames(Results$kappa) <- rownames(Results$kappa) <-
@@ -192,6 +227,8 @@ function(
   Results$labels
 Results$gamma <- gamma
 Results$allResults <- Estimates
+
+Results$N <- nrow(data_c)
 
   class(Results) <- "graphicalVAR"
   
