@@ -31,3 +31,4 @@ importFrom("utils", "setTxtProgressBar", "txtProgressBar")
 
   importFrom("stats", "cov")
   importFrom("utils", "capture.output")
+  

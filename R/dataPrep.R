@@ -1,14 +1,20 @@
+shift <- function(x,n){
+  length <- length(x)
+  c(rep(NA,n),x)[1:length]
+}
+
 # Data preperation function:
 tsData <- function(data,
                      vars,
                      beepvar,
                      dayvar,
                      idvar,
+                   lags = 1,
                      scale = TRUE,
                      centerWithin = TRUE,
                    deleteMissings = TRUE){
   . <- NULL
-  
+
   data <- as.data.frame(data)
   
   # Add subject:
@@ -34,6 +40,10 @@ tsData <- function(data,
   if (missing(vars)){
     vars <- names(data[!names(data)%in%c(idvar,dayvar,beepvar)])
   }
+  
+  
+  # Only retain important columns:
+  data <- data[,c(vars,idvar,dayvar,beepvar)]
   
   # Center and scale data:
   data[,vars] <- scale(data[,vars], TRUE, scale)
@@ -69,17 +79,23 @@ tsData <- function(data,
       dplyr::group_by_(idvar,dayvar) %>% dplyr::filter_(~BEEP >= first, ~BEEP <= last)%>%
       dplyr::arrange_(idvar,dayvar,beepvar)
   },  list(BEEP = as.name(beepvar))))
-  
+
   
   # Enter NA's:
   augData <- augData %>% dplyr::right_join(allBeeps, by = c(idvar,dayvar,beepvar))
   
   # Obtain data_c (slice away first row per day/subject):
-  data_c <- augData %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::slice(-1)
+  data_c <- augData %>% ungroup %>% dplyr::select_(.dots = vars)#  %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::slice(-1)
   
-  # Obtain data_l (slice away last row per day/subject):
-  data_l <- augData %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::slice(-n())
+  # Lagged datasets:
+  data_l <- do.call(cbind,lapply(lags, function(l){
+    data_lagged <- augData %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::mutate_each_(funs(shift),vars = vars) %>% ungroup %>% dplyr::select_(.dots=vars)
+    names(data_lagged) <- paste0(vars,"_lag",l)
+    data_lagged
+  }))
+  # data_l <- augData %>% dplyr::group_by_(idvar,dayvar) %>% dplyr::slice(-n())
 
+  
   # # Remove rows with missings:
   if (deleteMissings){
     isNA <- rowSums(is.na(data_c)) > 0 | rowSums(is.na(data_l)) > 0
@@ -91,13 +107,15 @@ tsData <- function(data,
   Results <- list(
     data = augData,
     data_c = data_c[,vars],
-    data_l = cbind(1,data_l[,vars]),
+    data_l = cbind(1,data_l),
     data_means = MeansData,
     vars=vars,
     idvar=idvar,
     dayvar=dayvar,
-    beepvar=beepvar
+    beepvar=beepvar,
+    lags = lags
   )
   
+  class(Results) <- "tsData"
   return(Results)
 }
