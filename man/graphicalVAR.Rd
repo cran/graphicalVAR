@@ -73,11 +73,11 @@ String indicating assessment day. Adding this argument makes sure that the first
   \item{idvar}{
 String indicating the subject ID
 }
+\item{lags}{
+Vector of lags to include
+}
 \item{centerWithin}{
 Logical, should subject data be within-person centered before estimating fixed effects?
-}
-\item{lags}{
-Vector of lags to be used
 }
 \item{likelihood}{
 Should likelihood be computed based on penalized contemporaneous matrix or unpenalized contemporaneous matrix. Set to \code{"penalized"} to mimic version 2.5 and later of \code{sparseTSCGM}.
