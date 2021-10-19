@@ -1,16 +1,21 @@
 Package: graphicalVAR
 Type: Package
 Title: Graphical VAR for Experience Sampling Data
-Version: 0.2.4
-Author: Sacha Epskamp
+Version: 0.3
+Authors@R: c(
+  person("Sacha", "Epskamp", email = "mail@sachaepskamp.com",role = c("aut", "cre")),
+  person("Eren", "Asena", role = c("ctb"))
+  )
 Maintainer: Sacha Epskamp <mail@sachaepskamp.com>
 Description: Estimates within and between time point interactions in experience sampling data, using the Graphical vector autoregression model in combination with regularization. See also Epskamp, Waldorp, Mottus & Borsboom (2018) <doi:10.1080/00273171.2018.1454823>.
 License: GPL (>= 2)
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Rcpp (>= 0.11.3), Matrix, glasso, glmnet, mvtnorm, qgraph (>=
-        1.3.1), dplyr, methods, igraph
+        1.3.1), dplyr, methods, igraph, rlang
 Depends: R (>= 3.1.0)
 NeedsCompilation: yes
-Packaged: 2020-10-23 17:08:18 UTC; sacha
+Packaged: 2021-10-19 18:41:42 UTC; sacha
+Author: Sacha Epskamp [aut, cre],
+  Eren Asena [ctb]
 Repository: CRAN
-Date/Publication: 2020-10-23 17:50:07 UTC
+Date/Publication: 2021-10-19 19:40:02 UTC
